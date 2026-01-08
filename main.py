@@ -79,7 +79,7 @@ def generate_fen(detected_pieces: List[Tuple[str, str]]) -> str:
 
 def main():
     # --- CONFIGURATION ---
-    input_image_path = "examples/test.jpg"
+    input_image_path = "examples/test_2.jpg"
     pieces_model = "models/480M_leyolo_pieces.onnx"
     corners_model = "models/480L_leyolo_xcorners.onnx"
     # ---------------------

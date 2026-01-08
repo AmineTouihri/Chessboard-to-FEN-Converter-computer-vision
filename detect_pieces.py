@@ -406,8 +406,8 @@ def main():
     
     # Hardcoded paths
     pieces_model_path = "models/480M_leyolo_pieces.onnx"
-    input_image_path = "examples/test.jpg"
-    output_image_path = "output/detected_board.jpg"
+    input_image_path = "examples/test_1.jpg"
+    output_image_path = "output/detected_pieces.jpg"
     
     print("=" * 60)
     print("Chess Piece Detector")
