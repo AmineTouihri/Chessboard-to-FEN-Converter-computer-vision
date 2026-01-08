@@ -451,15 +451,6 @@ def main():
     cv2.imwrite(output_image_path, vis_image)
     print(f"\nSaved output to: {output_image_path}")
     
-    # Display
-    print("\nDisplaying result... (Press any key to close)")
-    cv2.imshow('Chess Piece Detection', vis_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    
-    print("\n" + "=" * 60)
-    print("Detection complete!")
-    print("=" * 60)
 
 
 if __name__ == '__main__':

@@ -1,12 +1,7 @@
-# Chess Piece Detector Requirements
-# Install with: pip install -r requirements.txt
 
-# Core dependencies
-opencv-python>=4.8.0
+opencv-python-headless
 numpy>=1.24.0
 onnxruntime>=1.16.0
-
-# Optional: For GPU acceleration (requires CUDA)
-# onnxruntime-gpu>=1.16.0
-
-# Python version: 3.8+
+streamlit
+scipy
+pillow

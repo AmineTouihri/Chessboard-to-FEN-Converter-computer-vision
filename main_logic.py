@@ -130,6 +130,3 @@ def main():
     # 4. Output FEN
     fen = generate_fen(mapped_data)
     print("https://lichess.org/analysis/fromPosition/" + fen)
-
-if __name__ == '__main__':
-    main()
