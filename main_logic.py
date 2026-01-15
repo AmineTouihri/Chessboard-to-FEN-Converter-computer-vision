@@ -12,6 +12,22 @@ from typing import List, Dict, Tuple
 from detect_pieces import ChessPieceDetector
 from detect_board import ChessboardDetector
 
+# Mapping from model class names to FEN notation
+CLASS_TO_FEN = {
+    'white-pawn': 'P',
+    'white-rook': 'R',
+    'white-knight': 'N',
+    'white-bishop': 'B',
+    'white-queen': 'Q',
+    'white-king': 'K',
+    'black-pawn': 'p',
+    'black-rook': 'r',
+    'black-knight': 'n',
+    'black-bishop': 'b',
+    'black-queen': 'q',
+    'black-king': 'k'
+}
+
 def create_board_grid(corners: np.ndarray) -> np.ndarray:
     if len(corners) < 4: return None
     pts = corners[:, :2].astype(np.float32)
@@ -44,7 +60,8 @@ def map_pieces_to_squares(pieces: List[Dict], grid: np.ndarray) -> List[Tuple[st
         cx = (bbox[0] + bbox[2]) / 2
         cy = bbox[1] + (bbox[3] - bbox[1]) * 0.90 
         square = get_square_from_position_homography(cx, cy, grid)
-        results.append((piece['class'], square))
+        piece_char = CLASS_TO_FEN.get(piece['class'], piece['class'])
+        results.append((piece_char, square))
     return results
 
 def generate_fen(detected_pieces: List[Tuple[str, str]]) -> str:
@@ -78,9 +95,10 @@ def generate_fen(detected_pieces: List[Tuple[str, str]]) -> str:
     return "/".join(fen_rows) + " w - - 0 1"
 
 def main():
+    print("Chess Image to FEN Converter")
     # --- CONFIGURATION ---
     input_image_path = "examples/test_2.jpg"
-    pieces_model = "models/480M_leyolo_pieces.onnx"
+    pieces_model = "models/best.onnx"
     corners_model = "models/480L_leyolo_xcorners.onnx"
     # ---------------------
 
@@ -130,3 +148,13 @@ def main():
     # 4. Output FEN
     fen = generate_fen(mapped_data)
     print("https://lichess.org/analysis/fromPosition/" + fen)
+    
+    # 5. Visualize and Save
+    vis_image = piece_detector.visualize_detections(image, pieces)
+    if grid is not None:
+        pts = grid.astype(np.int32).reshape((-1, 1, 2))
+        cv2.polylines(vis_image, [pts], True, (0, 255, 0), 3)
+    
+    output_path = "output/detected_board.jpg"
+    cv2.imwrite(output_path, vis_image)
+    print(f"Saved visualization to {output_path}")

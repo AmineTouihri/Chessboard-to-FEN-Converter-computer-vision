@@ -107,7 +107,7 @@ class ChessboardDetector:
         input_tensor = np.transpose(normalized, (2, 0, 1))
         input_tensor = np.expand_dims(input_tensor, axis=0)
         
-        # Convert to float16
+        # Convert to float16 (original CameraChess corners model expects float16)
         input_tensor = input_tensor.astype(np.float16)
         
         metadata = {

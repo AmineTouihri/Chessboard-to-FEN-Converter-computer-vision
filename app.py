@@ -15,7 +15,7 @@ from main_logic import (
 
 # --- CONFIGURATION ---
 # Models must be in a 'models' folder next to this file
-PIECES_MODEL = os.path.join("models", "480M_leyolo_pieces.onnx")
+PIECES_MODEL = os.path.join("models", "best.onnx")
 CORNERS_MODEL = os.path.join("models", "480L_leyolo_xcorners.onnx")
 
 # --- UI SETUP ---
@@ -89,9 +89,14 @@ def process_chess_image(image_path):
     
     # 6. Visualization (Optional but nice)
     # We draw the grid on the image to show the user what was detected
-    vis_img = image.copy()
-    pts = grid.astype(np.int32).reshape((-1, 1, 2))
-    cv2.polylines(vis_img, [pts], True, (0, 255, 0), 3)
+    vis_img = piece_detector.visualize_detections(image, pieces)
+    if grid is not None:
+        pts = grid.astype(np.int32).reshape((-1, 1, 2))
+        cv2.polylines(vis_img, [pts], True, (0, 255, 0), 3)
+    
+    # Save the visualization
+    output_path = "output/streamlit_detected_board.jpg"
+    cv2.imwrite(output_path, vis_img)
     
     # Convert BGR to RGB for Streamlit display
     vis_img = cv2.cvtColor(vis_img, cv2.COLOR_BGR2RGB)

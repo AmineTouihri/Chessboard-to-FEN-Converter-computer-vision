@@ -1,12 +1,3 @@
-"""
-Chess Piece Detection - Simplified Version
-Detects chess pieces from examples/chessboard.jpg
-
-Usage: python detect_pieces.py
-
-Model: 480M_pieces_float16 (LeYOLO-based)
-Classes: 12 piece types (b, k, n, p, q, r, B, K, N, P, Q, R)
-"""
 
 import cv2
 import numpy as np
@@ -16,20 +7,22 @@ from pathlib import Path
 
 
 # Constants from CameraChessWeb
-MODEL_WIDTH = 480
-MODEL_HEIGHT = 288
-LABELS = ["b", "k", "n", "p", "q", "r", "B", "K", "N", "P", "Q", "R"]
+MODEL_WIDTH = 640
+MODEL_HEIGHT = 640
+LABELS = ['white-pawn', 'white-rook', 'white-knight', 'white-bishop', 'white-queen', 'white-king', 'black-pawn', 'black-rook', 'black-knight', 'black-bishop', 'black-queen', 'black-king', 'empty']
 LABEL_MAP = {label: i for i, label in enumerate(LABELS)}
 PIECE_NAMES = {
-    'b': 'Black Bishop', 'k': 'Black King', 'n': 'Black Knight',
-    'p': 'Black Pawn', 'q': 'Black Queen', 'r': 'Black Rook',
-    'B': 'White Bishop', 'K': 'White King', 'N': 'White Knight',
-    'P': 'White Pawn', 'Q': 'White Queen', 'R': 'White Rook'
+    'white-pawn': 'White Pawn', 'white-rook': 'White Rook', 'white-knight': 'White Knight',
+    'white-bishop': 'White Bishop', 'white-queen': 'White Queen', 'white-king': 'White King',
+    'black-pawn': 'Black Pawn', 'black-rook': 'Black Rook', 'black-knight': 'Black Knight',
+    'black-bishop': 'Black Bishop', 'black-queen': 'Black Queen', 'black-king': 'Black King',
+    'empty': 'Empty'
 }
 COLORS = [
     (255, 56, 56), (255, 157, 151), (255, 112, 31), (255, 178, 29),
     (207, 210, 49), (72, 249, 10), (146, 204, 23), (61, 219, 134),
-    (26, 147, 52), (0, 212, 187), (44, 153, 168), (0, 194, 255)
+    (26, 147, 52), (0, 212, 187), (44, 153, 168), (0, 194, 255),
+    (255, 0, 255)  # Added color for 13th class
 ]
 
 SQUARE_NAMES = [
@@ -42,6 +35,16 @@ SQUARE_NAMES = [
     'a7', 'b7', 'c7', 'd7', 'e7', 'f7', 'g7', 'h7',
     'a8', 'b8', 'c8', 'd8', 'e8', 'f8', 'g8', 'h8'
 ]
+
+
+def invert_color(label: str) -> str:
+    """Invert the color in the piece label (white <-> black)."""
+    if 'white' in label:
+        return label.replace('white', 'black')
+    elif 'black' in label:
+        return label.replace('black', 'white')
+    else:
+        return label  # for 'empty' or others
 
 
 class ChessPieceDetector:
@@ -144,8 +147,8 @@ class ChessPieceDetector:
         input_tensor = np.transpose(normalized, (2, 0, 1))
         input_tensor = np.expand_dims(input_tensor, axis=0)
         
-        # Convert to float16 if needed (CameraChess models use float16)
-        input_tensor = input_tensor.astype(np.float16)
+        # Convert to float32 (YOLOv8 ONNX models expect float32)
+        input_tensor = input_tensor.astype(np.float32)
         
         metadata = {
             'original_width': original_width,
@@ -326,6 +329,9 @@ class ChessPieceDetector:
         # Convert to detection format
         detections = []
         for box, score_vec, class_idx in zip(filtered_boxes, filtered_scores, filtered_classes):
+            label = LABELS[class_idx]
+            if label == 'empty':
+                continue  # Skip empty square detections
             # Scale boxes back to original image coordinates
             scale_x = metadata['original_width'] / MODEL_WIDTH
             scale_y = metadata['original_height'] / MODEL_HEIGHT
@@ -337,9 +343,9 @@ class ChessPieceDetector:
                     float(box[2] * scale_x),
                     float(box[3] * scale_y)
                 ],
-                'class': LABELS[class_idx],
+                'class': label,
                 'score': float(score_vec[class_idx]),
-                'name': PIECE_NAMES[LABELS[class_idx]]
+                'name': PIECE_NAMES[label]
             }
             detections.append(detection)
         
@@ -405,7 +411,7 @@ def main():
     """Detect chess pieces from examples/chessboard.jpg"""
     
     # Hardcoded paths
-    pieces_model_path = "models/480M_leyolo_pieces.onnx"
+    pieces_model_path = "models/best.onnx"
     input_image_path = "examples/test_1.jpg"
     output_image_path = "output/detected_pieces.jpg"
     
